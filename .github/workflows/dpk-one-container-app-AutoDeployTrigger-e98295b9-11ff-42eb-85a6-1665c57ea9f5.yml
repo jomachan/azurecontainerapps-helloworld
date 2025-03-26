@@ -1,0 +1,44 @@
+name: Trigger auto deployment for dpk-one-container-app
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/dpk-one-container-app-AutoDeployTrigger-e98295b9-11ff-42eb-85a6-1665c57ea9f5.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.DPKONECONTAINERAPP_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}
+          _dockerfilePathKey_: _dockerfilePath_
+          registryUrl: dpkregistry.azurecr.io
+          registryUsername: ${{ secrets.DPKONECONTAINERAPP_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.DPKONECONTAINERAPP_REGISTRY_PASSWORD }}
+          containerAppName: dpk-one-container-app
+          resourceGroup: amadeus-tst-rg-my-container-apps
+          imageToBuild: dpkregistry.azurecr.io/dpk-one-container-app:${{ github.sha }}
+          
+            
+
+     
+
